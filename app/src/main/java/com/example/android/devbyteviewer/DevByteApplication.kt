@@ -18,6 +18,9 @@
 package com.example.android.devbyteviewer
 
 import android.app.Application
+import com.example.android.devbyteviewer.di.dbModule
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 import timber.log.Timber
 
 /**
@@ -34,5 +37,9 @@ class DevByteApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
+        startKoin {
+            androidContext(this@DevByteApplication)
+            modules(listOf(dbModule))
+        }
     }
 }
