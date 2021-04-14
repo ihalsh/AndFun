@@ -1,10 +1,11 @@
 package com.example.android.devbyteviewer.di
 
+import android.app.Application
 import androidx.room.Room
-import com.example.android.devbyteviewer.DevByteApplication
 import com.example.android.devbyteviewer.database.VideoDao
 import com.example.android.devbyteviewer.database.VideosDatabase
 import com.example.android.devbyteviewer.network.DevbyteService
+import com.example.android.devbyteviewer.repository.VideosRepository
 import com.example.android.devbyteviewer.viewmodels.DevByteViewModel
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.squareup.moshi.Moshi
@@ -18,8 +19,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 val dbModule = module {
     single<VideosDatabase> {
         Room.databaseBuilder(androidContext(),
-                VideosDatabase::class.java,
-                "videos")
+                VideosDatabase::class.java, "videos")
+                .fallbackToDestructiveMigration()
                 .build()
     }
     single<VideoDao> { get<VideosDatabase>().videoDao }
@@ -30,7 +31,7 @@ val networkModule = module {
      * Build the Moshi object that Retrofit will be using, making sure to add the Kotlin adapter for
      * full Kotlin compatibility.
      */
-    single<Moshi> {
+    factory<Moshi> {
         Moshi.Builder()
                 .add(KotlinJsonAdapterFactory())
                 .build()
@@ -53,21 +54,9 @@ val networkModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { (application: DevByteApplication) -> DevByteViewModel(application) }
+    viewModel { (application: Application) -> DevByteViewModel(application) }
 }
 
-
-//private val moshi = Moshi.Builder()
-//        .add(KotlinJsonAdapterFactory())
-//        .build()
-//
-//object Network {
-//    // Configure retrofit to parse JSON and use coroutines
-//    private val retrofit: Retrofit = Retrofit.Builder()
-//            .baseUrl("https://devbytes.udacity.com/")
-//            .addConverterFactory(MoshiConverterFactory.create(moshi))
-//            .addCallAdapterFactory(CoroutineCallAdapterFactory())
-//            .build()
-//
-//    val devbytes: DevbyteService = retrofit.create(DevbyteService::class.java)
-//}
+val repositoryModule = module {
+    factory<VideosRepository> { VideosRepository(get(), get()) }
+}

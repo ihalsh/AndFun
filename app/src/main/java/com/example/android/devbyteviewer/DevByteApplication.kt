@@ -18,17 +18,27 @@
 package com.example.android.devbyteviewer
 
 import android.app.Application
+import android.os.Build
+import androidx.work.*
 import com.example.android.devbyteviewer.di.dbModule
 import com.example.android.devbyteviewer.di.networkModule
+import com.example.android.devbyteviewer.di.repositoryModule
 import com.example.android.devbyteviewer.di.viewModelModule
+import com.example.android.devbyteviewer.work.RefreshDataWork
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import timber.log.Timber
+import java.util.concurrent.TimeUnit.*
 
 /**
  * Override application to setup background work via WorkManager
  */
 class DevByteApplication : Application() {
+
+    private val applicationScope = CoroutineScope(Dispatchers.Default)
 
     /**
      * onCreate is called before the first screen is shown to the user.
@@ -41,7 +51,37 @@ class DevByteApplication : Application() {
         Timber.plant(Timber.DebugTree())
         startKoin {
             androidContext(this@DevByteApplication)
-            modules(listOf(dbModule, networkModule, viewModelModule))
+            modules(listOf(dbModule, networkModule, viewModelModule, repositoryModule))
         }
+        delayedInit()
+    }
+
+    private fun delayedInit() {
+        applicationScope.launch {
+            setupRecurrentWork()
+        }
+    }
+
+    private fun setupRecurrentWork() {
+        val constrains = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .setRequiresBatteryNotLow(true)
+                .setRequiresCharging(true)
+                .apply {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        setRequiresDeviceIdle(true)
+                    }
+                }.build()
+
+        val repeatingRequest =
+                PeriodicWorkRequestBuilder<RefreshDataWork>(1, DAYS)
+                        .setConstraints(constrains)
+                        .build()
+
+        WorkManager.getInstance().enqueueUniquePeriodicWork(
+                RefreshDataWork.WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                repeatingRequest
+        )
     }
 }

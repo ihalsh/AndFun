@@ -24,6 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 
 /**
  * DevByteViewModel designed to store and manage UI-related data in a lifecycle conscious way. This
@@ -35,13 +37,13 @@ import kotlinx.coroutines.launch
  * reference to applications across rotation since Application is never recreated during actiivty
  * or fragment lifecycle events.
  */
-class DevByteViewModel(application: Application) : AndroidViewModel(application) {
+class DevByteViewModel(application: Application) : AndroidViewModel(application), KoinComponent {
 
     private val viewModelJob = SupervisorJob()
 
     private val viewModelScope = CoroutineScope(viewModelJob + Dispatchers.Main)
 
-    private val videosRepository = VideosRepository()
+    private val videosRepository by inject<VideosRepository>()
 
     init {
         viewModelScope.launch {

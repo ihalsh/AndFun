@@ -27,12 +27,9 @@ import com.example.android.devbyteviewer.network.asDatabaseModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.KoinComponent
-import org.koin.core.inject
 
-class VideosRepository : KoinComponent {
-
-    private val videoDao: VideoDao by inject()
-    private val network: DevbyteService by inject()
+class VideosRepository(private val videoDao: VideoDao,
+                       private val network: DevbyteService) : KoinComponent {
 
     val videos: LiveData<List<Video>> =
             Transformations.map(videoDao.getVideos()) {

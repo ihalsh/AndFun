@@ -21,14 +21,23 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.android.devbyteviewer.repository.VideosRepository
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import retrofit2.HttpException
 
 class RefreshDataWork(appContext: Context, params: WorkerParameters)
-    : CoroutineWorker(appContext, params) {
+    : CoroutineWorker(appContext, params), KoinComponent {
+
+    private val videosRepository by inject<VideosRepository>()
+
     override suspend fun doWork(): Result = try {
-        VideosRepository().refreshVideos()
+        videosRepository.refreshVideos()
         Result.success()
     } catch (e: HttpException) {
         Result.failure()
+    }
+
+    companion object {
+        const val WORK_NAME = "RefreshDataWorker"
     }
 }
