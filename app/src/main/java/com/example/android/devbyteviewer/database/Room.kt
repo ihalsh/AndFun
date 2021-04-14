@@ -20,7 +20,6 @@ package com.example.android.devbyteviewer.database
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
-
 @Dao
 interface VideoDao {
     @Query("select * from databasevideo")

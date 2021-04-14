@@ -16,3 +16,24 @@
  */
 
 package com.example.android.devbyteviewer.repository
+
+import com.example.android.devbyteviewer.database.VideoDao
+import com.example.android.devbyteviewer.network.DevbyteService
+import com.example.android.devbyteviewer.network.asDatabaseModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.koin.core.KoinComponent
+import org.koin.core.inject
+
+class VideosRepository : KoinComponent {
+
+    private val videoDao: VideoDao by inject()
+    private val devbyteService: DevbyteService by inject()
+
+    suspend fun refreshVideos() {
+        withContext(Dispatchers.IO) {
+            val playlist = devbyteService.getPlaylist().await()
+            videoDao.insertAll(*playlist.asDatabaseModel())
+        }
+    }
+}
