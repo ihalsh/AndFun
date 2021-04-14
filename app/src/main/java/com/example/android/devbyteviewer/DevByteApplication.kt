@@ -20,6 +20,7 @@ package com.example.android.devbyteviewer
 import android.app.Application
 import com.example.android.devbyteviewer.di.dbModule
 import com.example.android.devbyteviewer.di.networkModule
+import com.example.android.devbyteviewer.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import timber.log.Timber
@@ -40,7 +41,7 @@ class DevByteApplication : Application() {
         Timber.plant(Timber.DebugTree())
         startKoin {
             androidContext(this@DevByteApplication)
-            modules(listOf(dbModule, networkModule))
+            modules(listOf(dbModule, networkModule, viewModelModule))
         }
     }
 }

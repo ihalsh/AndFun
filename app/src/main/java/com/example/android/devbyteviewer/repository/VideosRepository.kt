@@ -17,7 +17,11 @@
 
 package com.example.android.devbyteviewer.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
 import com.example.android.devbyteviewer.database.VideoDao
+import com.example.android.devbyteviewer.database.asDomainModel
+import com.example.android.devbyteviewer.domain.Video
 import com.example.android.devbyteviewer.network.DevbyteService
 import com.example.android.devbyteviewer.network.asDatabaseModel
 import kotlinx.coroutines.Dispatchers
@@ -28,11 +32,16 @@ import org.koin.core.inject
 class VideosRepository : KoinComponent {
 
     private val videoDao: VideoDao by inject()
-    private val devbyteService: DevbyteService by inject()
+    private val network: DevbyteService by inject()
+
+    val videos: LiveData<List<Video>> =
+            Transformations.map(videoDao.getVideos()) {
+                it.asDomainModel()
+            }
 
     suspend fun refreshVideos() {
         withContext(Dispatchers.IO) {
-            val playlist = devbyteService.getPlaylist().await()
+            val playlist = network.getPlaylist().await()
             videoDao.insertAll(*playlist.asDatabaseModel())
         }
     }
